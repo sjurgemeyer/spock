@@ -204,7 +204,7 @@ public class SpecParser implements GroovyClassVisitor {
   private Block addBlock(Method method, Statement stat) throws InvalidSpecCompileException {
     String label = stat.getStatementLabel();
 
-    for (BlockParseInfo blockInfo: BlockParseInfo.values()) {
+    for (IBlockParseInfo blockInfo: BlockParseInfoManager.values()) {
 	  	if (!label.equals(blockInfo.toString())) continue;
 
       checkIsValidSuccessor(method, blockInfo, stat.getLineNumber(), stat.getColumnNumber());
@@ -227,9 +227,9 @@ public class SpecParser implements GroovyClassVisitor {
         null : (String)constExpr.getValue();
   }
 
-  private void checkIsValidSuccessor(Method method, BlockParseInfo blockInfo, int line, int column)
+  private void checkIsValidSuccessor(Method method, IBlockParseInfo blockInfo, int line, int column)
       throws InvalidSpecCompileException {
-    BlockParseInfo oldBlockInfo = method.getLastBlock().getParseInfo();
+    IBlockParseInfo oldBlockInfo = method.getLastBlock().getParseInfo();
     if (!oldBlockInfo.getSuccessors(method).contains(blockInfo))
       throw new InvalidSpecCompileException(line, column, "'%s' is not allowed here; instead, use one of: %s",
           blockInfo, oldBlockInfo.getSuccessors(method), method.getName(), oldBlockInfo, blockInfo);

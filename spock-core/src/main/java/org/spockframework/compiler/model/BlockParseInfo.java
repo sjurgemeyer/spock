@@ -17,14 +17,17 @@
 package org.spockframework.compiler.model;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 /**
  *
  * @author Peter Niederwieser
  */
-public enum BlockParseInfo {
+public enum BlockParseInfo implements IBlockParseInfo {
+
+
   AND {
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
       return method.getLastBlock().getParseInfo().getSuccessors(method);
     }
     public Block addNewBlock(Method method) {
@@ -36,8 +39,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new AnonymousBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(SETUP, GIVEN, EXPECT, WHEN, CLEANUP, WHERE, METHOD_END);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+      if (successors == null) {
+        successors = EnumSet.of(SETUP, GIVEN, EXPECT, WHEN, CLEANUP, WHERE, METHOD_END);
+      }
+      return successors;
     }
   },
 
@@ -45,8 +51,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new SetupBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(AND, EXPECT, WHEN, CLEANUP, WHERE, METHOD_END);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+      if (successors == null) {
+        successors = EnumSet.of(AND, EXPECT, WHEN, CLEANUP, WHERE, METHOD_END);
+      }
+      return successors;
     }
   },
 
@@ -54,8 +63,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return SETUP.addNewBlock(method);
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return SETUP.getSuccessors(method);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+      if (successors == null) {
+        successors = SETUP.getSuccessors(method);
+      }
+      return successors;
     }
   },
 
@@ -63,8 +75,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new ExpectBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(AND, WHEN, CLEANUP, WHERE, METHOD_END);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+      if (successors == null) {
+        successors = EnumSet.of(AND, WHEN, CLEANUP, WHERE, METHOD_END);
+      }
+      return successors;
     }
   },
 
@@ -72,8 +87,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new WhenBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(AND, THEN);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+        if (this.successors == null) {
+          this.successors = EnumSet.of(AND, THEN);
+        }
+        return this.successors;
     }
   },
 
@@ -81,8 +99,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new ThenBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(AND, EXPECT, WHEN, THEN, CLEANUP, WHERE, METHOD_END);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+        if (successors == null) {
+            successors = EnumSet.of(AND, EXPECT, WHEN, THEN, CLEANUP, WHERE, METHOD_END);
+        }
+        return successors;
     }
   },
 
@@ -90,8 +111,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new CleanupBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(AND, WHERE, METHOD_END);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+        if (successors == null) {
+            successors = EnumSet.of(AND, WHERE, METHOD_END);
+        }
+        return successors;
     }
   },
 
@@ -99,8 +123,11 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       return method.addBlock(new WhereBlock(method));
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
-      return EnumSet.of(AND, METHOD_END);
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
+        if (successors == null) {
+            successors = EnumSet.of(AND, METHOD_END);
+        }
+        return successors;
     }
   },
 
@@ -108,7 +135,7 @@ public enum BlockParseInfo {
     public Block addNewBlock(Method method) {
       throw new UnsupportedOperationException("addNewBlock");
     }
-    public EnumSet<BlockParseInfo> getSuccessors(Method method) {
+    public Set<? extends IBlockParseInfo> getSuccessors(Method method) {
       throw new UnsupportedOperationException("getSuccessors");
     }
     public String toString() {
@@ -116,11 +143,12 @@ public enum BlockParseInfo {
     }
   };
 
+  protected Set<? extends IBlockParseInfo> successors;
   public String toString() {
     return super.toString().toLowerCase();
   }
 
   public abstract Block addNewBlock(Method method);
 
-  public abstract EnumSet<BlockParseInfo> getSuccessors(Method method);
+  public abstract Set<? extends IBlockParseInfo> getSuccessors(Method method);
 }
